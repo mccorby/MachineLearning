@@ -1,28 +1,60 @@
 package com.mccorby.datascience.nlp
 
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
 
-fun main(args: Array<String>) {
-    val data = object {}.javaClass.getResource("/titles.txt").readText()
 //    val data =
 //        "Poovalli Induchoodan  is sentenced for six years prison life for murdering his classmate. " +
 //                "The nation of Panem consists of a wealthy Capitol and twelve poorer districts misona " +
 //                "misono misona misosol mishako misha"
-    val nGrams = NGrams()
+
+
+fun main(args: Array<String>) {
+    // TODO These values to be provided in the args
+    val modelFile = "/tmp/titles_language_model"
+    val data = object {}.javaClass.getResource("/titles.txt").readText()
     val order = 5
-    val lm = nGrams.train(data, order)
+
+    val nGrams = NGrams()
+    // Load or train the model
+    val lm = loadModel(modelFile) ?: trainModel(nGrams, data, order, modelFile)
+
+    // Inference
     val nLetters = 20
-    print(nGrams.generateText(lm, order, nLetters, "juma".toLowerCase()))
+    print(nGrams.generateText(lm, order, nLetters, "star w".toLowerCase()))
 }
+
+private fun trainModel(
+    nGrams: NGrams,
+    data: String,
+    order: Int,
+    modelFile: String
+): LanguageModel {
+    val lm = nGrams.train(data, order)
+    ObjectOutputStream(FileOutputStream(modelFile)).use { it -> it.writeObject(lm) }
+    return lm
+}
+
+private fun loadModel(file: String): LanguageModel? {
+    ObjectInputStream(FileInputStream(file)).use { it ->
+
+        return it.readObject() as LanguageModel
+    }
+}
+
 
 // Taking from Yoav Goldberg blog post
 // http://nbviewer.jupyter.org/gist/yoavg/d76121dfde2618422139
 typealias LanguageModel = HashMap<String, MutableMap<Char, Float>>
 
 class NGrams {
+
     fun train(data: String, order: Int): LanguageModel {
         val languageModel = LanguageModel()
         val pad = "~".repeat(order)
@@ -82,7 +114,8 @@ class NGrams {
         val candidates = mutableMapOf<Char, Float>()
         if (languageModel.containsKey(currentHistory)) {
             val distribution = languageModel[currentHistory]!!
-            val lesserOrderHistory = history.slice(IntRange(max(history.length - (order - 1), 0), history.length - 1))
+            val lesserOrderHistory =
+                history.slice(IntRange(max(history.length - (order - 1), 0), history.length - 1))
             val lesserOrderCount = languageModel[lesserOrderHistory]!!.values.sum().toInt()
 
             for ((aChar, count) in distribution) {
