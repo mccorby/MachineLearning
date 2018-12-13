@@ -1,5 +1,6 @@
 package com.mccorby.datascience.nlp
 
+import kotlinx.coroutines.*
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ObjectInputStream
@@ -8,6 +9,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
+import kotlin.system.measureTimeMillis
 
 //    val data =
 //        "Poovalli Induchoodan  is sentenced for six years prison life for murdering his classmate. " +
@@ -15,7 +17,7 @@ import kotlin.random.Random
 //                "misono misona misosol mishako misha"
 
 
-fun main(args: Array<String>) {
+suspend fun main(args: Array<String>) {
     // TODO These values to be provided in the args
     val modelFile = "/tmp/titles_language_model"
     val data = object {}.javaClass.getResource("/titles.txt").readText()
@@ -30,7 +32,7 @@ fun main(args: Array<String>) {
     print(nGrams.generateText(lm, order, nLetters, "star w".toLowerCase()))
 }
 
-private fun trainModel(
+private suspend fun trainModel(
     nGrams: NGrams,
     data: String,
     order: Int,
@@ -55,56 +57,49 @@ typealias LanguageModel = HashMap<String, MutableMap<Char, Float>>
 
 class NGrams {
 
-    fun train(data: String, order: Int): LanguageModel {
-        val languageModel = LanguageModel()
-        val pad = "~".repeat(order)
-        val allData = pad + data.toLowerCase()
+    suspend fun train(data: String, order: Int): LanguageModel {
+        val result = coroutineScope {
+            val allData = prepareData(order, data)
 
-        val total = (allData.count() - order)
-        for (ngram in order downTo 1) {
-            for (i in 0..total) {
-                val lastIdx = min(i + ngram, allData.length - 1)
-                val history = allData.slice(IntRange(i, lastIdx - 1))
-                val aChar = allData[lastIdx]
-                val entry = languageModel.getOrElse(history) { mutableMapOf(aChar to 0f) }
-                val count = entry.getOrDefault(aChar, 0f)
-                entry[aChar] = count.plus(1)
-
-                languageModel[history] = entry
+            val total = (allData.count() - order)
+            val listOfAsyncs = mutableListOf<Deferred<LanguageModel>>()
+            for (ngram in order downTo 1) {
+                listOfAsyncs.add(async { trainForOrder(total, ngram, allData) })
             }
+            listOfAsyncs.awaitAll()
         }
-
+        val languageModel = LanguageModel()
+        result.map { languageModel.putAll(it) }
         return languageModel
     }
 
-    fun normalize(entries: MutableMap<Char, Float>): MutableMap<Char, Float> {
-        val total = entries.values.sum()
-        for ((aChar, count) in entries) {
-            entries[aChar] = count.div(total)
-        }
-        return entries
+    private fun prepareData(order: Int, data: String): String {
+        val pad = "~".repeat(order)
+        return pad + data.toLowerCase()
     }
 
-    fun generateLetter(languageModel: LanguageModel, history: String, order: Int): String {
-        val currentHistory = history.slice(IntRange(max(history.length - order, 0), history.length - 1))
-        var result = ""
-        if (languageModel.containsKey(currentHistory)) {
-            val distribution = languageModel[currentHistory]!!
-            val normDistribution = normalize(distribution)
-            var x = Random.nextFloat()
-            for ((aChar, count) in normDistribution) {
-                x -= count
-                if (x <= 0) {
-                    result = aChar.toString()
-                }
-            }
-        } else if (order > 1) {
-            result = generateLetter(languageModel, history, order - 1)
+    private fun trainForOrder(
+        total: Int,
+        ngram: Int,
+        allData: String
+    ): LanguageModel {
+        println("Training for order $ngram")
+        val languageModel = LanguageModel()
+        for (i in 0..total) {
+            val lastIdx = min(i + ngram, allData.length - 1)
+            val history = allData.slice(IntRange(i, lastIdx - 1))
+            val aChar = allData[lastIdx]
+            val entry = languageModel.getOrElse(history) { mutableMapOf(aChar to 0f) }
+            val count = entry.getOrDefault(aChar, 0f)
+            entry[aChar] = count.plus(1)
+
+            languageModel[history] = entry
         }
-        return result
+        println("END Training for order $ngram")
+        return languageModel
     }
 
-    fun stupidBackoffRanking(
+    private fun stupidBackoffRanking(
         languageModel: LanguageModel,
         history: String,
         order: Int,
