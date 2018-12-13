@@ -1,81 +1,30 @@
 package com.mccorby.datascience.nlp
 
-import kotlinx.coroutines.*
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
-import kotlin.random.Random
-import kotlin.system.measureTimeMillis
 
-//    val data =
-//        "Poovalli Induchoodan  is sentenced for six years prison life for murdering his classmate. " +
-//                "The nation of Panem consists of a wealthy Capitol and twelve poorer districts misona " +
-//                "misono misona misosol mishako misha"
-
-
-suspend fun main(args: Array<String>) {
-    // TODO These values to be provided in the args
-    val modelFile = "/tmp/titles_language_model"
-    val data = object {}.javaClass.getResource("/titles.txt").readText()
-    val order = 5
-
-    val nGrams = NGrams()
-    // Load or train the model
-    val lm = loadModel(modelFile) ?: trainModel(nGrams, data, order, modelFile)
-
-    // Inference
-    val nLetters = 20
-    print(nGrams.generateText(lm, order, nLetters, "star w".toLowerCase()))
-}
-
-private suspend fun trainModel(
-    nGrams: NGrams,
-    data: String,
-    order: Int,
-    modelFile: String
-): LanguageModel {
-    val lm = nGrams.train(data, order)
-    ObjectOutputStream(FileOutputStream(modelFile)).use { it -> it.writeObject(lm) }
-    return lm
-}
-
-private fun loadModel(file: String): LanguageModel? {
-    ObjectInputStream(FileInputStream(file)).use { it ->
-
-        return it.readObject() as LanguageModel
-    }
-}
-
-
-// Taking from Yoav Goldberg blog post
-// http://nbviewer.jupyter.org/gist/yoavg/d76121dfde2618422139
 typealias LanguageModel = HashMap<String, MutableMap<Char, Float>>
 
 class NGrams {
 
     suspend fun train(data: String, order: Int): LanguageModel {
         val result = coroutineScope {
-            val allData = prepareData(order, data)
 
-            val total = (allData.count() - order)
+            val total = (data.count() - order)
             val listOfAsyncs = mutableListOf<Deferred<LanguageModel>>()
             for (ngram in order downTo 1) {
-                listOfAsyncs.add(async { trainForOrder(total, ngram, allData) })
+                listOfAsyncs.add(async { trainForOrder(total, ngram, data) })
             }
             listOfAsyncs.awaitAll()
         }
         val languageModel = LanguageModel()
         result.map { languageModel.putAll(it) }
         return languageModel
-    }
-
-    private fun prepareData(order: Int, data: String): String {
-        val pad = "~".repeat(order)
-        return pad + data.toLowerCase()
     }
 
     private fun trainForOrder(
@@ -153,5 +102,12 @@ class NGrams {
      */
     fun charmax(candidates: Map<Char, Float>): Char {
         return candidates.toList().sortedByDescending { (_, score) -> score }[0].first
+    }
+}
+
+interface DataPreprocessor {
+    fun processData(order: Int, data: String): String {
+        val pad = "~".repeat(order)
+        return pad + data.toLowerCase()
     }
 }
