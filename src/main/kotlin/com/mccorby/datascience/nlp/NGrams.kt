@@ -1,9 +1,6 @@
 package com.mccorby.datascience.nlp
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -14,24 +11,16 @@ class NGrams {
 
     suspend fun train(data: String, order: Int): LanguageModel {
         val result = coroutineScope {
-
+            // Discount the added start token
             val total = (data.count() - order)
-            val listOfAsyncs = mutableListOf<Deferred<LanguageModel>>()
-            for (ngram in order downTo 1) {
-                listOfAsyncs.add(async { trainForOrder(total, ngram, data) })
-            }
-            listOfAsyncs.awaitAll()
+            (1..order).map { async(Dispatchers.IO) { trainForOrder(total, it, data) } }.awaitAll()
         }
-        val languageModel = LanguageModel()
-        result.map { languageModel.putAll(it) }
-        return languageModel
+        return LanguageModel().apply {
+            result.map { putAll(it) }
+        }
     }
 
-    private fun trainForOrder(
-        total: Int,
-        ngram: Int,
-        allData: String
-    ): LanguageModel {
+    private fun trainForOrder(total: Int, ngram: Int, allData: String): LanguageModel {
         println("Training for order $ngram")
         val languageModel = LanguageModel()
         for (i in 0..total) {
@@ -48,30 +37,7 @@ class NGrams {
         return languageModel
     }
 
-    private fun stupidBackoffRanking(
-        languageModel: LanguageModel,
-        history: String,
-        order: Int,
-        modelOrder: Int
-    ): MutableMap<Char, Float> {
-        val currentHistory = history.slice(IntRange(max(history.length - order, 0), history.length - 1))
-        val candidates = mutableMapOf<Char, Float>()
-        if (languageModel.containsKey(currentHistory)) {
-            val distribution = languageModel[currentHistory]!!
-            val lesserOrderHistory =
-                history.slice(IntRange(max(history.length - (order - 1), 0), history.length - 1))
-            val lesserOrderCount = languageModel[lesserOrderHistory]!!.values.sum().toInt()
-
-            for ((aChar, count) in distribution) {
-                val lambdaCorrection = 0.4.pow(modelOrder - order).toFloat()
-                val orderCount = lambdaCorrection * count.div(lesserOrderCount)
-                candidates[aChar] = orderCount
-            }
-        }
-        return candidates
-    }
-
-    fun generateText(languageModel: LanguageModel, modelOrder: Int, nLetters: Int, seed: String = ""): String {
+    fun generateText(languageModel: LanguageModel, modelOrder: Int, rankingModel: RankingModel, nLetters: Int, seed: String = ""): String {
         var history = "~".repeat(modelOrder)
         var out = ""
         for (i in IntRange(0, nLetters)) {
@@ -82,7 +48,7 @@ class NGrams {
                 var backoffOrder = modelOrder
                 while (candidates.isEmpty() && backoffOrder > 0) {
                     println("Doin backoff for modelOrder $backoffOrder")
-                    candidates = stupidBackoffRanking(languageModel, history, backoffOrder--, modelOrder)
+                    candidates = rankingModel.rank(languageModel, history, backoffOrder--, modelOrder).toMutableMap()
                     println(candidates)
                 }
                 if (candidates.isNotEmpty()) {

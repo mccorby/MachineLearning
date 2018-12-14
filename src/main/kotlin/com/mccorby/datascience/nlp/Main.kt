@@ -22,22 +22,22 @@ suspend fun main(args: Array<String>) {
     val nGrams = NGrams()
 
     // Load or train the model
-    val lm = loadModel(modelFile).getOrElse { trainModel(nGrams, processedData, order, modelFile) }
+    val lm = loadModel(modelFile).getOrElse {
+        val model = trainModel(nGrams, processedData, order)
+        saveModel(model, modelFile)
+        model
+    }
 
     // Inference
     val nLetters = 20
-    print(nGrams.generateText(lm, order, nLetters, "star w".toLowerCase()))
+    val rankingModel = StupidBackoffRanking()
+    print(nGrams.generateText(lm, order, rankingModel, nLetters, "star w".toLowerCase()))
 }
 
-private suspend fun trainModel(
-    nGrams: NGrams,
-    data: String,
-    order: Int,
-    modelFile: String
-): LanguageModel {
-    val lm = nGrams.train(data, order)
-    ObjectOutputStream(FileOutputStream(modelFile)).use { it -> it.writeObject(lm) }
-    return lm
+private suspend fun trainModel(nGrams: NGrams, data: String, order: Int)  = nGrams.train(data, order)
+
+private fun saveModel(languageModel: LanguageModel, modelFile: String) {
+    ObjectOutputStream(FileOutputStream(modelFile)).use { it -> it.writeObject(languageModel) }
 }
 
 private fun loadModel(file: String): Try<LanguageModel> {
