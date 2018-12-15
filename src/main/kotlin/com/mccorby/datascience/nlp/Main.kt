@@ -19,7 +19,7 @@ suspend fun main(args: Array<String>) {
     val order = args[2].toInt()
     val processedData = object : DataPreprocessor {}.processData(order, data)
 
-    val nGrams = NGrams()
+    val nGrams = NGrams(StupidBackoffRanking())
 
     // Load or train the model
     val lm = loadModel(modelFile).getOrElse {
@@ -29,9 +29,8 @@ suspend fun main(args: Array<String>) {
     }
 
     // Inference
-    val nLetters = 20
-    val rankingModel = StupidBackoffRanking()
-    print(nGrams.generateText(lm, order, rankingModel, nLetters, "s".toLowerCase()))
+    val nLetters = 200
+    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
 }
 
 private suspend fun trainModel(nGrams: NGrams, data: String, order: Int)  = nGrams.train(data, order)
@@ -40,6 +39,7 @@ private fun saveModel(languageModel: LanguageModel, modelFile: String) {
     ObjectOutputStream(FileOutputStream(modelFile)).use { it -> it.writeObject(languageModel) }
 }
 
+@Suppress("UNCHECKED_CAST")
 private fun loadModel(file: String): Try<LanguageModel> {
     return Try {
         ObjectInputStream(FileInputStream(file)).use { it ->

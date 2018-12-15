@@ -1,13 +1,17 @@
 package com.mccorby.datascience.nlp
 
-import kotlinx.coroutines.*
-import kotlin.math.max
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlin.math.min
-import kotlin.math.pow
+import kotlin.random.Random
 
 typealias LanguageModel = HashMap<String, MutableMap<Char, Float>>
 
-class NGrams {
+const val START_CHAR = "~"
+
+class NGrams(private val rankingModel: RankingModel) {
 
     suspend fun train(data: String, order: Int): LanguageModel {
         val result = coroutineScope {
@@ -37,8 +41,13 @@ class NGrams {
         return languageModel
     }
 
-    fun generateText(languageModel: LanguageModel, modelOrder: Int, rankingModel: RankingModel, nLetters: Int, seed: String = ""): String {
-        var history = "~".repeat(modelOrder)
+    fun generateText(
+        languageModel: LanguageModel,
+        modelOrder: Int,
+        nLetters: Int,
+        seed: String = ""
+    ): String {
+        var history = START_CHAR.repeat(modelOrder)
         var out = ""
         for (i in IntRange(0, nLetters)) {
             val aChar = if (i < seed.length) {
@@ -47,12 +56,10 @@ class NGrams {
                 var candidates = mutableMapOf<Char, Float>()
                 var backoffOrder = modelOrder
                 while (candidates.isEmpty() && backoffOrder > 0) {
-                    println("Doin backoff for modelOrder $backoffOrder")
                     candidates = rankingModel.rank(languageModel, history, modelOrder, backoffOrder--).toMutableMap()
-                    println(candidates)
                 }
                 if (candidates.isNotEmpty()) {
-                    charmax(candidates).toString()
+                    charRand(candidates).toString()
                 } else {
                     ""
                 }
@@ -66,6 +73,11 @@ class NGrams {
     /**
      * Selects the character with the best score
      */
+    fun charRand(candidates: Map<Char, Float>): Char {
+        val rand = Random.nextFloat()
+        return candidates.toList().find { it.second > rand }?.first ?: candidates.keys.first()
+    }
+
     fun charmax(candidates: Map<Char, Float>): Char {
         return candidates.toList().sortedByDescending { (_, score) -> score }[0].first
     }
@@ -73,7 +85,7 @@ class NGrams {
 
 interface DataPreprocessor {
     fun processData(order: Int, data: String): String {
-        val pad = "~".repeat(order)
+        val pad = START_CHAR.repeat(order)
         return pad + data.toLowerCase()
     }
 }
