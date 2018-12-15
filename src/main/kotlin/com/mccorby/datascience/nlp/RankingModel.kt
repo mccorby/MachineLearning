@@ -7,8 +7,8 @@ interface RankingModel {
     fun rank(
         languageModel: LanguageModel,
         history: String,
-        order: Int,
-        modelOrder: Int
+        modelOrder: Int,
+        order: Int
     ): Map<Char, Float>
 }
 
@@ -16,20 +16,25 @@ class StupidBackoffRanking : RankingModel {
     override fun rank(
         languageModel: LanguageModel,
         history: String,
-        order: Int,
-        modelOrder: Int
+        modelOrder: Int,
+        order: Int
     ): Map<Char, Float> {
-        val currentHistory = history.slice(IntRange(max(history.length - order, 0), history.length - 1))
-        val lesserOrderHistory = history.slice(IntRange(max(history.length - (order - 1), 0), history.length - 1))
+        val currentHistory = history.slice(IntRange(max(history.length - order - 1 , 0), history.length - 1))
+        val lesserOrderHistory = history.slice(IntRange(max(history.length - order - 1, 0), history.length - 2))
 
-        return languageModel[currentHistory]?.let { distribution ->
-            val lesserOrderCount = languageModel[lesserOrderHistory]!!.values.sum().toInt()
-            distribution.map {
+        return if (order == 1) {
+            languageModel[currentHistory]?.toMap() ?: mapOf()
+        } else {
+            languageModel[currentHistory]?.let { distribution ->
+                // Can force non nullability since lm[history - 1[ will always exist
+                val lesserOrderCount = languageModel[lesserOrderHistory]!!.values.sum().toInt()
                 val lambdaCorrection = 0.4.pow(modelOrder - order).toFloat()
-                val orderCount = lambdaCorrection * it.value.div(lesserOrderCount)
-                Pair(it.key, orderCount)
-            }.toMap()
-        } ?: mapOf()
-    }
 
+                distribution.map {
+                    val orderCount = lambdaCorrection * it.value.div(lesserOrderCount)
+                    Pair(it.key, orderCount)
+                }.toMap()
+            } ?: mapOf()
+        }
+    }
 }

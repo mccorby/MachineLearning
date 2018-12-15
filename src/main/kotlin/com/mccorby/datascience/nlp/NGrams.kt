@@ -48,7 +48,7 @@ class NGrams {
                 var backoffOrder = modelOrder
                 while (candidates.isEmpty() && backoffOrder > 0) {
                     println("Doin backoff for modelOrder $backoffOrder")
-                    candidates = rankingModel.rank(languageModel, history, backoffOrder--, modelOrder).toMutableMap()
+                    candidates = rankingModel.rank(languageModel, history, modelOrder, backoffOrder--).toMutableMap()
                     println(candidates)
                 }
                 if (candidates.isNotEmpty()) {

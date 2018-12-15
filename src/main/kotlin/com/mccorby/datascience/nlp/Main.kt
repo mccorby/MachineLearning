@@ -31,7 +31,7 @@ suspend fun main(args: Array<String>) {
     // Inference
     val nLetters = 20
     val rankingModel = StupidBackoffRanking()
-    print(nGrams.generateText(lm, order, rankingModel, nLetters, "star w".toLowerCase()))
+    print(nGrams.generateText(lm, order, rankingModel, nLetters, "s".toLowerCase()))
 }
 
 private suspend fun trainModel(nGrams: NGrams, data: String, order: Int)  = nGrams.train(data, order)
