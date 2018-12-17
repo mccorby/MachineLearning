@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -64,7 +65,7 @@ class NGrams(private val rankingModel: RankingModel) {
                     ""
                 }
             }
-            history = history.slice(IntRange(history.length - modelOrder + 1, history.length - 1)) + aChar
+            history = history.drop(1).plus(aChar)
             out += aChar
         }
         return out

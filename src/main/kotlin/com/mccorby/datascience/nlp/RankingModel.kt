@@ -19,9 +19,8 @@ class StupidBackoffRanking : RankingModel {
         modelOrder: Int,
         order: Int
     ): Map<Char, Float> {
-        val currentHistory = history.slice(IntRange(max(history.length - order - 1 , 0), history.length - 1))
-        val lesserOrderHistory = history.slice(IntRange(max(history.length - order - 1, 0), history.length - 2))
-
+        val currentHistory = history.drop(max(history.length - order - 1 , 0))
+        val lesserOrderHistory = currentHistory.dropLast(1)
         return if (order == 1) {
             languageModel[currentHistory]?.toMap() ?: mapOf()
         } else {
