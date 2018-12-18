@@ -1,4 +1,4 @@
-package com.mccorby.datascience.nlp
+package com.mccorby.machinelearning.nlp
 
 import kotlin.math.log2
 import kotlin.math.pow
@@ -22,4 +22,8 @@ fun entropy(languageModel: LanguageModel, testData: String, order: Int): Float {
     }
 }
 
-fun perplexity(languageModel: LanguageModel, testData: String, order: Int) = entropy(languageModel, testData, order).pow(2)
+fun perplexity(languageModel: LanguageModel, testData: String, order: Int) = entropy(
+    languageModel,
+    testData,
+    order
+).pow(2)

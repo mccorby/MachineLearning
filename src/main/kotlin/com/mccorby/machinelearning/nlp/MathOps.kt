@@ -1,4 +1,4 @@
-package com.mccorby.datascience.nlp
+package com.mccorby.machinelearning.nlp
 
 import kotlin.random.Random
 

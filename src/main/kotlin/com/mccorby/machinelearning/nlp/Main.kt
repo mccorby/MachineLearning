@@ -1,4 +1,4 @@
-package com.mccorby.datascience.nlp
+package com.mccorby.machinelearning.nlp
 
 import arrow.core.Try
 import arrow.core.getOrElse
@@ -32,9 +32,21 @@ suspend fun main(args: Array<String>) {
     if (evaluate) {
         val lm2 = trainModel(nGrams, processedData, order - 1)
         val lm3 = trainModel(nGrams, processedData, order + 1)
-        println("Perplexity ${perplexity(lm, "life: three stories of love, lust, and liberation", order)}")
-        println("Perplexity model ${order - 1} ${perplexity(lm2, "life: three stories of love, lust, and liberation", order)}")
-        println("Perplexity model ${order + 1} ${perplexity(lm3, "life: three stories of love, lust, and liberation", order)}")
+        println("Perplexity ${perplexity(
+            lm,
+            "life: three stories of love, lust, and liberation",
+            order
+        )}")
+        println("Perplexity model ${order - 1} ${perplexity(
+            lm2,
+            "life: three stories of love, lust, and liberation",
+            order
+        )}")
+        println("Perplexity model ${order + 1} ${perplexity(
+            lm3,
+            "life: three stories of love, lust, and liberation",
+            order
+        )}")
         println()
     }
 
