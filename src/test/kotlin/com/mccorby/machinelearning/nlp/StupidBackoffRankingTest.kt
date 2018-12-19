@@ -5,8 +5,7 @@ import kotlin.test.assertEquals
 
 class StupidBackoffRankingTest {
 
-    private val cut: StupidBackoffRanking =
-        StupidBackoffRanking()
+    private val cut: StupidBackoffRanking = StupidBackoffRanking()
 
     @Test
     fun `Given a history and order bigger than 1 when ranking then uses lesser order to compute`() {
