@@ -22,11 +22,11 @@ class StupidBackoffRanking : RankingModel {
         val currentHistory = history.drop(max(history.length - order - 1 , 0))
         val lesserOrderHistory = currentHistory.dropLast(1)
         return if (order == 1) {
-            languageModel[currentHistory]?.toMap() ?: mapOf()
+            languageModel[currentHistory]?.mapValues { it.value.toFloat() } ?: mapOf()
         } else {
             languageModel[currentHistory]?.let { distribution ->
                 // Can force non nullability since lm[history - 1[ will always exist
-                val lesserOrderCount = languageModel[lesserOrderHistory]!!.values.sum().toInt()
+                val lesserOrderCount = languageModel[lesserOrderHistory]!!.values.sum()
                 val lambdaCorrection = 0.4.pow(modelOrder - order).toFloat()
 
                 distribution.map {

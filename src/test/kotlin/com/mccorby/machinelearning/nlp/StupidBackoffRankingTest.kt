@@ -15,8 +15,8 @@ class StupidBackoffRankingTest {
         val currentOrder = 3
         val lm = LanguageModel()
         val history = "star"
-        lm[history] = mutableMapOf(' ' to 1F)
-        lm["sta"] = mutableMapOf('r' to 3F)
+        lm[history] = mutableMapOf(' ' to 1)
+        lm["sta"] = mutableMapOf('r' to 3)
         val expected = mapOf(' ' to (0.4F * 1) / 3) // 0.4 * 1 / 3
 
         // When
@@ -33,8 +33,8 @@ class StupidBackoffRankingTest {
         val currentOrder = 4
         val lm = LanguageModel()
         val history = "star"
-        lm[history] = mutableMapOf(' ' to 1F)
-        lm["sta"] = mutableMapOf('r' to 3F)
+        lm[history] = mutableMapOf(' ' to 1)
+        lm["sta"] = mutableMapOf('r' to 3)
         val expected = mapOf(' ' to 1F / 3)
 
         // When
@@ -51,7 +51,7 @@ class StupidBackoffRankingTest {
         val order = 1
         val lm = LanguageModel()
         val history = "s"
-        lm[history] = mutableMapOf(' ' to 1F)
+        lm[history] = mutableMapOf(' ' to 1)
         val expected = mapOf(' ' to 1F)
 
         // When

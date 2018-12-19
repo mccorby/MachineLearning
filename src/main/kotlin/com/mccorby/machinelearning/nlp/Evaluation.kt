@@ -13,8 +13,8 @@ fun entropy(languageModel: LanguageModel, testData: String, order: Int): Float {
     //+log2(P(before|years))+log2(P(the|before))+log2(P(mast|the)))
     var history = START_CHAR.repeat(order)
     return testData.asSequence().fold(0f) { acc, it ->
-        val total = languageModel[history]?.values?.sum() ?: 1.0f
-        val prob = (languageModel[history]?.get(it) ?: 0.0f).div(total)
+        val total = languageModel[history]?.values?.sum() ?: 1
+        val prob = (languageModel[history]?.get(it)?.toFloat() ?: 0F).div(total)
         val logOfProb = if (prob > 0) log2(prob) else 0.0f
 
         history = history.drop(1).plus(it)
@@ -22,8 +22,4 @@ fun entropy(languageModel: LanguageModel, testData: String, order: Int): Float {
     }
 }
 
-fun perplexity(languageModel: LanguageModel, testData: String, order: Int) = entropy(
-    languageModel,
-    testData,
-    order
-).pow(2)
+fun perplexity(languageModel: LanguageModel, testData: String, order: Int) = entropy(languageModel, testData, order).pow(2)

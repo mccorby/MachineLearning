@@ -8,7 +8,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
 
-typealias LanguageModel = HashMap<String, MutableMap<Char, Float>>
+typealias LanguageModel = HashMap<String, MutableMap<Char, Int>>
 
 const val START_CHAR = "~"
 
@@ -32,8 +32,8 @@ class NGrams(private val rankingModel: RankingModel) {
             val lastIdx = min(i + ngram, allData.length - 1)
             val history = allData.slice(IntRange(i, lastIdx - 1))
             val aChar = allData[lastIdx]
-            val entry = languageModel.getOrElse(history) { mutableMapOf(aChar to 0f) }
-            val count = entry.getOrDefault(aChar, 0f)
+            val entry = languageModel.getOrElse(history) { mutableMapOf(aChar to 0) }
+            val count = entry.getOrDefault(aChar, 0)
             entry[aChar] = count.plus(1)
 
             languageModel[history] = entry

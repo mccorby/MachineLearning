@@ -40,11 +40,11 @@ class NGramsTest {
         val corpus = "star wars star trek street"
         val order = 3
         val expectedForSta = mutableMapOf(
-            'r' to 2F
+            'r' to 2
         )
         val expectedForSt = mutableMapOf(
-            'a' to 2F,
-            'r' to 1F
+            'a' to 2,
+            'r' to 1
         )
 
         // When
