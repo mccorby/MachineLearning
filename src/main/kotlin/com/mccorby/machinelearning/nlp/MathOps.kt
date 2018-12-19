@@ -11,5 +11,5 @@ fun charRand(candidates: Map<Char, Float>): Char {
 }
 
 fun charMax(candidates: Map<Char, Float>): Char {
-    return candidates.toList().sortedByDescending { (_, score) -> score }[0].first
+    return candidates.toList().maxBy { (_, score) -> score }!!.first
 }

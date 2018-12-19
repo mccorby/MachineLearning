@@ -29,6 +29,10 @@ suspend fun main(args: Array<String>) {
         model
     }
 
+    val size = lm.filterKeys { it.length == order }.size
+    println("Model numbers:")
+    println("$order-ngrams -> $size")
+
     if (evaluate) {
         val lm2 = trainModel(nGrams, processedData, order - 1)
         val lm3 = trainModel(nGrams, processedData, order + 1)
