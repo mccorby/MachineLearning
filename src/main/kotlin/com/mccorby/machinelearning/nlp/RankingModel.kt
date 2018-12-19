@@ -30,7 +30,7 @@ class StupidBackoffRanking : RankingModel {
                 val lambdaCorrection = 0.4.pow(modelOrder - order).toFloat()
 
                 distribution.map {
-                    val orderCount = lambdaCorrection * it.value.div(lesserOrderCount)
+                    val orderCount = lambdaCorrection * it.value.toFloat().div(lesserOrderCount)
                     Pair(it.key, orderCount)
                 }.toMap()
             } ?: mapOf()
