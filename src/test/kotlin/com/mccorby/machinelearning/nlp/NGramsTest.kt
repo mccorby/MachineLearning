@@ -78,13 +78,13 @@ class NGramsTest {
         val order = 3
         val data = object : DataPreprocessor {}.processData(order, corpus)
         val languageModel = runBlocking { cut.train(data, order) }
-        val expected = "lugar "
-        val seed = "lu"
+        val expected = "en un "
+        val seed = "en"
 
         // When
         val result = cut.generateText(languageModel, order, 5, seed)
 
         // Then
-        assertEquals(result, expected)
+        assertEquals(expected, result)
     }
 }
