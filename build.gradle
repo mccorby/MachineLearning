@@ -18,6 +18,15 @@ repositories {
     mavenCentral()
 }
 
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.mccorby.machinelearning.nlp.NGrams'
+    }
+    baseName = 'ngram-model'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 def arrow_version = "0.8.1"
 def kotlin_version = "1.3.0"
 def mockitoKotlin_version = "1.3.0"
