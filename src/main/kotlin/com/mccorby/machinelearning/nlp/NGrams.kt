@@ -4,9 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 typealias LanguageModel = HashMap<String, MutableMap<Char, Int>>
 
@@ -51,31 +49,42 @@ class NGrams(private val rankingModel: RankingModel) {
         var history = START_CHAR.repeat(modelOrder)
         var out = ""
         for (i in IntRange(0, nLetters)) {
+            // The seed is returned as it is
             val aChar = if (i < seed.length) {
                 seed[i].toString()
             } else {
-                var candidates = mutableMapOf<Char, Float>()
-                var backoffOrder = modelOrder
-                while (candidates.isEmpty() && backoffOrder > 0) {
-                    candidates = rankingModel.rank(languageModel, history, modelOrder, backoffOrder--).toMutableMap()
-                }
-                if (candidates.isNotEmpty()) {
-                    charRand(candidates).toString()
-                } else {
-                    ""
-                }
+                generateNextChar(languageModel, modelOrder, history)
             }
+            // Shift history and add new char
             history = history.drop(1).plus(aChar)
             out += aChar
         }
         return out
     }
 
-}
+    fun generateNextChar(
+        languageModel: LanguageModel,
+        modelOrder: Int,
+        history: String
+    ): String {
+        val candidates = generateCandidates(languageModel, modelOrder, history)
+        return if (candidates.isNotEmpty()) {
+            charRand(candidates).toString()
+        } else {
+            ""
+        }
+    }
 
-interface DataPreprocessor {
-    fun processData(order: Int, data: String): String {
-        val pad = START_CHAR.repeat(order)
-        return pad + data.toLowerCase()
+    fun generateCandidates(
+        languageModel: LanguageModel,
+        modelOrder: Int,
+        history: String
+    ): Map<Char, Float>  {
+        var candidates = mutableMapOf<Char, Float>()
+        var backoffOrder = modelOrder
+        while (candidates.isEmpty() && backoffOrder > 0) {
+            candidates = rankingModel.rank(languageModel, history, modelOrder, backoffOrder--).toMutableMap()
+        }
+        return candidates
     }
 }
