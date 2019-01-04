@@ -1,7 +1,8 @@
-package com.mccorby.machinelearning.nlp
+package com.mccorby.machinelearning.examples
 
 import arrow.core.Try
 import arrow.core.getOrElse
+import com.mccorby.machinelearning.nlp.*
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ObjectInputStream
@@ -66,11 +67,16 @@ suspend fun main(args: Array<String>) {
     println("########")
     println(nGrams.generateText(lm, order, nLetters, "c"))
     println("########")
-//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+
+    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
 }
 
 private suspend fun trainModel(nGrams: NGrams, data: String, order: Int) = nGrams.train(data, order)
