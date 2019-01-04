@@ -55,13 +55,22 @@ suspend fun main(args: Array<String>) {
     }
 
     // Inference
-    val nLetters = 200
-    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
-    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+    val nLetters = 100
+    println(nGrams.generateText(lm, order, nLetters, "l"))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "st"))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "la "))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "cha"))
+    println("########")
+    println(nGrams.generateText(lm, order, nLetters, "c"))
+    println("########")
+//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
+//    println(nGrams.generateText(lm, order, nLetters, "sta".toLowerCase()))
 }
 
 private suspend fun trainModel(nGrams: NGrams, data: String, order: Int) = nGrams.train(data, order)

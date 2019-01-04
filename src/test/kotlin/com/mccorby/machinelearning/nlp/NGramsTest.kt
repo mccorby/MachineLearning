@@ -1,5 +1,6 @@
 package com.mccorby.machinelearning.nlp
 
+import com.mccorby.machinelearning.nlp.NGrams.Companion.START_CHAR
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test

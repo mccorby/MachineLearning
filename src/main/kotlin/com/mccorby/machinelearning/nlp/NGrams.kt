@@ -8,8 +8,6 @@ import kotlin.math.min
 
 typealias LanguageModel = HashMap<String, MutableMap<Char, Int>>
 
-const val START_CHAR = "~"
-
 class NGrams(private val rankingModel: RankingModel) {
 
     suspend fun train(data: String, order: Int): LanguageModel {
@@ -86,5 +84,9 @@ class NGrams(private val rankingModel: RankingModel) {
             candidates = rankingModel.rank(languageModel, history, modelOrder, backoffOrder--).toMutableMap()
         }
         return candidates
+    }
+
+    companion object {
+        const val START_CHAR = "~"
     }
 }

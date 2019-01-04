@@ -1,5 +1,6 @@
 package com.mccorby.machinelearning.nlp
 
+import com.mccorby.machinelearning.nlp.NGrams.Companion.START_CHAR
 import kotlin.math.log2
 import kotlin.math.pow
 
